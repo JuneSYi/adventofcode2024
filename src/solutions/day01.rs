@@ -1,15 +1,24 @@
 use std::{fs,io};
 use std::io::BufRead;
 use std::io::Error;
+use std::collections::HashMap;
 
 pub fn run() {
-    let (loc_data1, loc_data2) = iterate_over_file("inputs/day01.txt").unwrap();
-
-    let sumofdiffdata = compare_diff_and_sum(&loc_data1,&loc_data2);
+    // let (loc_data1, loc_data2) = iterate_over_file("inputs/day01.txt").unwrap();
+    let loc_data = iterate_over_file("inputs/day01.txt").unwrap();
+    let sumofdiffdata = compare_diff_and_sum(&loc_data.0,&loc_data.1);
     // println!("loc data {:?}",loc_data1);
     // println!("loc data {:?}",loc_data2);
-    println!("get abs diff of each location index from smallest to largest and sum total \
-        ends up as -> : {}", sumofdiffdata)
+    // println!("get abs diff of each location index from smallest to largest and sum total \
+    //     ends up as -> : {}", sumofdiffdata)
+
+    // create hashmap of loc_data.0
+    let hm1 = create_hashmap_of_data(&loc_data.0);
+    // create hashmap of loc_data.1
+    let hm2 = create_hashmap_of_data(&loc_data.1);
+    // iterate through hm1 and check if key exists in hm2
+    let hmsum = compare_and_find_new_sum(&hm1,&hm2);
+    println!("total sum for problem set 2 is {}", hmsum)
 }
 
 fn compare_diff_and_sum(loc1: &Vec<i32>, loc2: &Vec<i32>) -> i32 {
@@ -19,6 +28,7 @@ fn compare_diff_and_sum(loc1: &Vec<i32>, loc2: &Vec<i32>) -> i32 {
     }
     sumtotal
 }
+
 fn iterate_over_file(filename: &str) -> Result<(Vec<i32>, Vec<i32>), Error> {
     let f = fs::File::open(filename)?;
     let reader = io::BufReader::new(f);
@@ -38,7 +48,53 @@ fn iterate_over_file(filename: &str) -> Result<(Vec<i32>, Vec<i32>), Error> {
     Ok((loc_group_one,loc_group_two))
 }
 
-/*
+fn create_hashmap_of_data(vec_of_data: &Vec<i32>) -> HashMap<i32,i32> {
+    let mut hmap: HashMap<i32,i32> = HashMap::new();
+    for locdata in vec_of_data.into_iter() {
+        // if !hmap.contains_key(locdata) {
+        //     hmap.insert(locdata,1);
+        // } else {
+        //     let vals = *hmap.get(locdata).unwrap();
+        //     hmap.insert(locdata,vals);
+        // }
+        if let Some(count) = hmap.get_mut(&locdata) {
+            *count +=1;
+        } else {
+            hmap.insert(*locdata,1);
+        }
+        // hmap.entry(locdata).and_modify(|counter| *counter +=1).or_insert(1);
+    }
+    hmap
+}
+
+fn compare_and_find_new_sum(hm1: &HashMap<i32,i32>, hm2: &HashMap<i32,i32>) -> i32 {
+    let mut res: i32 = 0;
+    // iterate through hm1 and check if key exists in hm2
+    for hm1key in hm1.keys() {
+        if hm2.contains_key(hm1key) {
+            // if true, multiply key by the value in hm2
+            let num: i32 = {
+                hm1key * hm2.get(hm1key).unwrap()
+            };
+            // then multiply that total to value in hm1
+            let num_with_freq: i32 = num * hm1.get(hm1key).unwrap();
+            // then append that to overall_total
+            res += num_with_freq;
+        }
+    }
+    res
+}
+
+
+
+/*** PART 02
+ * figure out exactly how often each number from the left list appears in the 
+ * right list. Calculate a total similarity score by adding up each number in 
+ * the left list after multiplying it by the number of times that number 
+ * appears in the right list.
+ */
+
+/*** PART 01
     To find out, pair up the numbers and measure how far apart they are.
     Pair up the smallest number in the left list with the smallest number
     in the right list, then the second-smallest left number with
@@ -55,4 +111,4 @@ fn iterate_over_file(filename: &str) -> Result<(Vec<i32>, Vec<i32>), Error> {
 
     Your actual left and right lists contain many location IDs. What is the
     total distance between your lists?
-     */
+*/
