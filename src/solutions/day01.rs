@@ -2,23 +2,40 @@ use std::{fs,io};
 use std::io::BufRead;
 use std::io::Error;
 use std::collections::HashMap;
+use std::time::Instant;
 
 pub fn run() {
-    // let (loc_data1, loc_data2) = iterate_over_file("inputs/day01.txt").unwrap();
-    let loc_data = iterate_over_file("inputs/day01.txt").unwrap();
-    let sumofdiffdata = compare_diff_and_sum(&loc_data.0,&loc_data.1);
-    // println!("loc data {:?}",loc_data1);
-    // println!("loc data {:?}",loc_data2);
+    let start_time = Instant::now();
+    // let loc_data = iterate_over_file("inputs/day01.txt").unwrap();
+    // let sumofdiffdata = compare_diff_and_sum(&loc_data.0,&loc_data.1);
+    // println!("loc data {:?}",&loc_data.0);
+    // println!("loc data {:?}",&loc_data.1);
     // println!("get abs diff of each location index from smallest to largest and sum total \
-    //     ends up as -> : {}", sumofdiffdata)
+    //     ends up as -> : {}", sumofdiffdata);
 
-    // create hashmap of loc_data.0
-    let hm1 = create_hashmap_of_data(&loc_data.0);
-    // create hashmap of loc_data.1
-    let hm2 = create_hashmap_of_data(&loc_data.1);
+    // create hashmap of loc_data.0 and loc_data.1
+    // let hm1 = create_hashmap_of_data(&loc_data.0);
+    // let hm2 = create_hashmap_of_data(&loc_data.1);
+
     // iterate through hm1 and check if key exists in hm2
+    // let hmsum = compare_and_find_new_sum(&hm1,&hm2);
+    // println!("total sum for problem set 2 is {}", hmsum);
+
+
+    let buf_data = reuse_buffer_over_file("inputs/day01.txt").unwrap();
+    let diffdata = compare_diff_and_sum(&buf_data.0,&buf_data.1);
+    println!("buf data {:?}",&buf_data.0);
+    println!("buf data {:?}",&buf_data.1);
+    println!("get abs diff of each location index from smallest to largest and sum total \
+        ends up as -> : {}", diffdata);
+
+    let hm1 = create_hashmap_of_data(&buf_data.0);
+    let hm2 = create_hashmap_of_data(&buf_data.1);
     let hmsum = compare_and_find_new_sum(&hm1,&hm2);
-    println!("total sum for problem set 2 is {}", hmsum)
+    println!("total sum for problem set 2 is {}", hmsum);
+    
+    let duration = start_time.elapsed(); // Calculate the elapsed time
+    println!("Execution time: {:?}", duration);
 }
 
 fn compare_diff_and_sum(loc1: &Vec<i32>, loc2: &Vec<i32>) -> i32 {
@@ -85,7 +102,28 @@ fn compare_and_find_new_sum(hm1: &HashMap<i32,i32>, hm2: &HashMap<i32,i32>) -> i
     res
 }
 
-
+fn reuse_buffer_over_file(filename: &str) -> Result<(Vec<i32>, Vec<i32>), Error> {
+    let f = fs::File::open(filename)?;
+    let mut reader = io::BufReader::new(f);
+    let mut loc_group_one = Vec::new();
+    let mut loc_group_two = Vec::new();
+    let mut buf = String::new();
+    while reader.read_line(&mut buf)? > 0 {
+        {
+            let line = buf.trim_end();
+            let numbers: Vec<i32> = line
+                .split_whitespace()
+                .map(|s| s.parse().unwrap())
+                .collect();
+            loc_group_one.push(numbers[0]);
+            loc_group_two.push(numbers[1]);
+        }
+        buf.clear();
+    }
+    loc_group_one.sort();
+    loc_group_two.sort();
+    Ok((loc_group_one,loc_group_two))
+}
 
 /*** PART 02
  * figure out exactly how often each number from the left list appears in the 
