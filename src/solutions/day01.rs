@@ -6,35 +6,24 @@ use std::time::Instant;
 
 pub fn run() {
     let start_time = Instant::now();
+
     // let loc_data = iterate_over_file("inputs/day01.txt").unwrap();
-    // let sumofdiffdata = compare_diff_and_sum(&loc_data.0,&loc_data.1);
-    // println!("loc data {:?}",&loc_data.0);
-    // println!("loc data {:?}",&loc_data.1);
-    // println!("get abs diff of each location index from smallest to largest and sum total \
-    //     ends up as -> : {}", sumofdiffdata);
+    let loc_data = reuse_buffer_over_file("inputs/day01.txt").unwrap();
+    let sumofdiffdata = compare_diff_and_sum(&loc_data.0,&loc_data.1);
+    println!("loc data {:?}",&loc_data.0);
+    println!("loc data {:?}",&loc_data.1);
+    println!("get abs diff of each location index from smallest to largest and sum total \
+        ends up as -> : {}", sumofdiffdata);
 
     // create hashmap of loc_data.0 and loc_data.1
-    // let hm1 = create_hashmap_of_data(&loc_data.0);
-    // let hm2 = create_hashmap_of_data(&loc_data.1);
+    let hm1 = create_hashmap_of_data(&loc_data.0);
+    let hm2 = create_hashmap_of_data(&loc_data.1);
 
     // iterate through hm1 and check if key exists in hm2
-    // let hmsum = compare_and_find_new_sum(&hm1,&hm2);
-    // println!("total sum for problem set 2 is {}", hmsum);
-
-
-    let buf_data = reuse_buffer_over_file("inputs/day01.txt").unwrap();
-    let diffdata = compare_diff_and_sum(&buf_data.0,&buf_data.1);
-    println!("buf data {:?}",&buf_data.0);
-    println!("buf data {:?}",&buf_data.1);
-    println!("get abs diff of each location index from smallest to largest and sum total \
-        ends up as -> : {}", diffdata);
-
-    let hm1 = create_hashmap_of_data(&buf_data.0);
-    let hm2 = create_hashmap_of_data(&buf_data.1);
     let hmsum = compare_and_find_new_sum(&hm1,&hm2);
     println!("total sum for problem set 2 is {}", hmsum);
     
-    let duration = start_time.elapsed(); // Calculate the elapsed time
+    let duration = start_time.elapsed();
     println!("Execution time: {:?}", duration);
 }
 
