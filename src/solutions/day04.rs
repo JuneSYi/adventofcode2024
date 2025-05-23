@@ -14,7 +14,8 @@ fn xmas_count(fp: &str) -> u32 {
         Ok(grid) => grid,
         Err(_) => panic!("coudn't process file"),
     };
-    let ans: u32 = count_xmas(restructured);
+    // let ans: u32 = count_xmas(restructured);
+    let ans: u32 = count_mas(restructured);
     ans
 }
 
@@ -36,6 +37,101 @@ fn create_2d_array(fp: &str) -> Result<Vec<Vec<char>>, std::io::Error> {
         .collect::<Vec<Vec<char>>>())
 }
 
+fn count_mas(grid: Vec<Vec<char>>) -> u32 {
+    let mut count: u32 = 0;
+    let rows = grid.len();
+    if rows < 3 { return 0; }
+    let cols = grid[0].len();
+    if cols < 3 { return 0; } 
+
+    for row in 1..rows-1 {
+        for col in 1..cols-1 {
+            if grid[row][col] == 'A' {
+                if check_diagonal_patterns(&grid, row, col) {
+                    count += 1;
+                }
+            }
+        }
+    }
+    count
+}
+
+fn check_diagonal_patterns(grid: &Vec<Vec<char>>, row: usize, col: usize) -> bool {
+    // Diagonal 1: Upper-left to lower-right
+    let toplefttobotright_forward = check_mas_diagonal(grid, row, col, -1, -1, 1, 1);
+    let toplefttobotright_backward = check_sam_diagonal(grid, row, col, -1, -1, 1, 1);
+    
+    // Diagonal 2: Upper-right to lower-left
+    let toprighttobotleft_forward = check_mas_diagonal(grid, row, col, -1, 1, 1, -1);
+    let toprighttobotleft_backward = check_sam_diagonal(grid, row, col, -1, 1, 1, -1);
+    
+    (toplefttobotright_forward || toplefttobotright_backward) && (toprighttobotleft_forward || toprighttobotleft_backward)
+}
+
+fn check_mas_diagonal(grid: &Vec<Vec<char>>, row: usize, col: usize, 
+                      m_row_offset: i32, m_col_offset: i32, 
+                      s_row_offset: i32, s_col_offset: i32) -> bool {
+    // check for 'M'
+    let m_row = match (row as i32).checked_add(m_row_offset) {
+        Some(r) if r >= 0 && (r as usize) < grid.len() => r as usize,
+        _ => return false,
+    };
+    
+    let m_col = match (col as i32).checked_add(m_col_offset) {
+        Some(c) if c >= 0 && (c as usize) < grid[0].len() => c as usize,
+        _ => return false,
+    };
+    
+    if grid[m_row][m_col] != 'M' {
+        return false;
+    }
+    
+    // check for 'S'
+    let s_row = match (row as i32).checked_add(s_row_offset) {
+        Some(r) if r >= 0 && (r as usize) < grid.len() => r as usize,
+        _ => return false,
+    };
+    
+    let s_col = match (col as i32).checked_add(s_col_offset) {
+        Some(c) if c >= 0 && (c as usize) < grid[0].len() => c as usize,
+        _ => return false,
+    };
+    
+    grid[s_row][s_col] == 'S'
+}
+
+fn check_sam_diagonal(grid: &Vec<Vec<char>>, row: usize, col: usize, 
+                      s_row_offset: i32, s_col_offset: i32, 
+                      m_row_offset: i32, m_col_offset: i32) -> bool {
+    // check for 'S'
+    let s_row = match (row as i32).checked_add(s_row_offset) {
+        Some(r) if r >= 0 && (r as usize) < grid.len() => r as usize,
+        _ => return false,
+    };
+    
+    let s_col = match (col as i32).checked_add(s_col_offset) {
+        Some(c) if c >= 0 && (c as usize) < grid[0].len() => c as usize,
+        _ => return false,
+    };
+    
+    if grid[s_row][s_col] != 'S' {
+        return false;
+    }
+    
+    // check for 'M'
+    let m_row = match (row as i32).checked_add(m_row_offset) {
+        Some(r) if r >= 0 && (r as usize) < grid.len() => r as usize,
+        _ => return false,
+    };
+    
+    let m_col = match (col as i32).checked_add(m_col_offset) {
+        Some(c) if c >= 0 && (c as usize) < grid[0].len() => c as usize,
+        _ => return false,
+    };
+    
+    grid[m_row][m_col] == 'M'
+}
+
 fn count_xmas(grid: Vec<Vec<char>>) -> u32 {
     let mut count: u32 = 0;
     let rows = grid.len();
@@ -55,7 +151,13 @@ fn count_xmas(grid: Vec<Vec<char>>) -> u32 {
     count
 }
 
-fn check_word_in_direction(grid: &Vec<Vec<char>>, x: usize, y: usize, cur_idx: usize, dir: usize) -> u32 {
+fn check_word_in_direction(
+    grid: &Vec<Vec<char>>,
+    x: usize,
+    y: usize,
+    cur_idx: usize,
+    dir: usize,
+) -> u32 {
     let target = ['X', 'M', 'A', 'S'];
     let directions = [
         (0, 1),
@@ -96,7 +198,13 @@ fn check_word_in_direction(grid: &Vec<Vec<char>>, x: usize, y: usize, cur_idx: u
     found
 }
 
-/***
+/*** PART 02
+find two MAS in the shape of an X. One way to achieve that is like this:
+M.S
+.A.
+M.S
+Irrelevant characters have again been replaced with .
+in the above diagram. Within the X, each MAS can be written forwards or backwards.
 */
 
 /*** PART 01
